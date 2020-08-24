@@ -5,6 +5,307 @@
     <title>Placeholder startpagina</title>
 </head>
 <body>
-<!-- your HTML starts here -->
+<h1>MY NEW PAGE THAT WORKS</h1>
+<h1>Login</h1>
+
+
+
+
+
+
+<script>
+    function clickCounter() {
+        if(typeof(Storage) !== "undefined") {
+            sessionStorage.myJWT = "ThisisATest";
+
+            document.getElementById("result").innerHTML = "You have clicked the button " + sessionStorage.myJWT + " time(s) in this session.";
+        }
+    }
+</script>
+
+<p><button onclick="clickCounter()" type="button">Click me!</button></p>
+<div id="result"></div>
+<p>Click the button to see the counter increase.</p>
+<p>Close the browser tab (or window), and try again, and the counter is reset.</p>
+
+
+
+<script>
+    function validateForm() {
+        var x = document.forms["myForm"]["username"].value;
+        var y = document.forms["myForm"]["password"].value;
+        if (x == "" || x == null || y == "" || y == null) {
+            alert("Fields must be filled in");
+            return false;
+        }
+    }
+</script>
+</head>
+
+
+<h2>JavaScript validation for empty input field</h2>
+<p>Try to submit the form without entering any text.</p>
+
+<form name="myForm" action="/login_final" onsubmit="return validateForm()" method="post" required>
+    <input type="text" name="username">
+    <input type="password" name="password">
+    <input type="submit" value="Submit">
+</form>
+
+
+
+
+
+
+
+<!--
+
+<form id="loginform">
+    <input type="text" name="username" required/>
+    <input type="password" name="password" required/>
+   <input type="button" value="login" id="login" />
+    <button onclick="window.location.href='/login'">Continue</button>
+</form>-->
+<!--
+<script type="text/javascript">
+
+    function login(event) {
+        var formData = new FormData(document.querySelector("#loginform"));
+        var encData = new URLSearchParams(formData.entries());
+
+        fetch("restservices/authentication", {method: "POST", body: encData})
+            .then(function(response) {
+                if (response.ok) return response.json();
+                else throw "Wrong username/password";
+            })
+            .then(myJson => window.sessionStorage.setItem("myJWT", myJson.JWT))
+            .catch(error => console.log(error));
+    }
+
+    document.querySelector("#login").addEventListener("click", login);
+
+    document.getElementById("result69").innerHTML = "You have clicked the button " + sessionStorage.myJson.JWT + " time(s) in this session.";
+
+
+        </script>
+        <br>
+
+
+<div id="result69">Tester</div>
+-->
+
+
+
+
+<ul>
+    <li><a href="/login">Login!</a></li>
+</ul>
+
+<div id="resultje"></div>
+
+<script>
+    if (sessionStorage.getItem("myJWT") === null) {
+        document.getElementById("resultje").innerHTML = "myJWT still empty though";
+    }else{
+        document.getElementById("resultje").innerHTML = "<br>\n" +
+            "<a href=\"/restservices/countries\">All customers in JSON</a>\n" +
+            "<ul>\n" +
+            "    <li><a href=\"/restservices/customers\">All customers in JSON</a></li>\n" +
+            "    <li><a href=\"/restservices/customers\">All UsersN</a></li>\n" +
+            "    <li><a href=\"/restservices/customer/1\">Customers With id 1</a></li>\n" +
+            "    <li><a href=\"/restservices/customer/2\">Customers With id 2</a></li>\n" +
+            "</ul>";
+    }
+
+
+</script>
+
+
+
+
+
+
+<h2>via POST</h2>
+<h3>Customer creation</h3>
+<form id="POSTCustomerForm">
+    <label for="name">Customer name:<input type="text" id="name" name="name"/></label>
+    <input type="button" id="postNoJackson" value="JobPost!"/>
+    <input type="button" id="postJackson" value="JacksonPost!"/>
+</form>
+
+<h2>Via PUT:</h2>
+<h3>Customer modification</h3>
+<form id="PUTCustomerForm">
+    <label for="putid">Customer id:<input type="text" id="putid" name="id"/></label>
+    <label for="putname">Customer name:<input type="text" id="putname" name="name"/></label>
+    <input type="button" id="put" value="put!"/>
+</form>
+
+<h2>Via Patch:</h2>
+<h3>Customer modification</h3>
+<form id="PATCHCustomerForm">
+    <label for="patchid">Customer id:<input type="text" id="patchid" name="id"/></label>
+    <label for="patchname">Customer name:<input type="text" id="patchname" name="name"/></label>
+    <input type="button" id="patch" value="patch!"/>
+</form>
+
+<h2>Via Delete:</h2>
+<h3>Customer modification</h3>
+<form id="DeleteCustomerForm">
+    <label for="deleteid">Customer id:<input type="text" id="deleteid" name="id"/></label>
+    <input type="button" id="delete" value="Delete!"/>
+</form>
+
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+<script type="text/javascript">
+
+    //document.querySelector("#profile").addEventListener("click", function () {
+   //     var fetchOptions = {
+     //       method: 'GET',
+    //        headers : {
+    //            'Authorization' : 'Bearer ' + window.sessionStorage.getItem("myJWT")
+    //        }
+   //     };
+
+    //    fetch("restservices/customers/profile", fetchOptions)
+   //         .then(response => response.json())
+   //         .then(function (myJson) {
+   //             console.log(myJson)
+   //         });
+   // });
+
+
+
+    document.querySelector("#postNoJackson").addEventListener("click", function () {
+        var formData = new FormData(document.querySelector("#POSTCustomerForm"));
+        var encData = new URLSearchParams(formData.entries());
+
+        fetch("restservices/customers/nojackson", {method: 'POST', body: encData})
+            .then(response => response.json())
+            .then(function (myJson) {
+                console.log(myJson)
+            });
+    });
+
+    document.querySelector("#postJackson").addEventListener("click", function () {
+        var formData = new FormData(document.querySelector("#POSTCustomerForm"));
+        var encData = new URLSearchParams(formData.entries());
+
+        fetch("restservices/customers/jackson", {method: 'POST', body: encData})
+            .then(response => response.json())
+            .then(function (myJson) {
+                console.log(myJson)
+            });
+    });
+
+    document.querySelector("#put").addEventListener("click", function () {
+        var id = document.querySelector("#putid").value;
+        var formData = new FormData(document.querySelector("#PUTCustomerForm"));
+        var encData = new URLSearchParams(formData.entries());
+        var fetchOptions = {
+            method: 'PUT',
+            headers : {
+                'Authorization' : 'Bearer ' + window.sessionStorage.getItem("myJWT")
+            },
+            body: encData
+        };
+
+        fetch("restservices/customer/"+id, {method: 'PUT', body: encData})
+            .then(response => response.json())
+            .then(function (myJson) {
+                console.log(myJson)
+            });
+    });
+
+    document.querySelector("#patch").addEventListener("click", function () {
+        var id = document.querySelector("#patchid").value;
+        var formData = new FormData(document.querySelector("#PATCHCustomerForm"));
+        var encData = new URLSearchParams(formData.entries());
+        var fetchOptions = {
+            method: 'PATCH',
+            headers : {
+                'Authorization' : 'Bearer ' + window.sessionStorage.getItem("myJWT")
+            },
+            body: encData
+        };
+
+        fetch("restservices/customer/"+id, {method: 'PATCH', body: encData})
+            .then(response => response.json())
+            .then(function (myJson) {
+                console.log(myJson)
+            });
+    });
+
+    document.querySelector("#delete").addEventListener("click", function () {
+        var id = document.querySelector("#deleteid").value;
+        var fetchOptions = {
+            method: 'DELETE',
+            headers : {
+                'Authorization' : 'Bearer ' + window.sessionStorage.getItem("myJWT")
+            }
+        }
+
+        fetch("restservices/customer/"+id, fetchOptions)
+            .then(function (response) {
+                if (response.ok) {
+                    console.log("customer deleted")
+                }
+                else if(response.status==404) {
+                    console.log("Customer not found")
+                }
+                else if(response.status==483) {
+                    console.log("forbidden")
+                }
+            }).catch(error => console.log(error));
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>
