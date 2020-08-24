@@ -2,16 +2,15 @@ package nl.hu.bep.model;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class MyUser implements Principal {
-    public static List<MyUser> allMyUsers = new ArrayList<>();
+public class User implements Principal {
+    public static List<User> allMyUsers = new ArrayList<>();
     private String username, plainpassword, role, firstname, secondname;
     private int id;
     private static int numCustomers = 0;
 
-    public MyUser(String uname, String pwd, String first, String second){
+    public User(String uname, String pwd, String first, String second){
         id = ++numCustomers;
         username = uname;
         plainpassword = pwd;
@@ -21,25 +20,25 @@ public class MyUser implements Principal {
         allMyUsers.add(this);
     }
 
-    public static List<MyUser> getAllUsers() {
+    public static List<User> getAllUsers() {
         return allMyUsers;
     }
 
 
-    public static MyUser createUser(String uname, String pwd, String first, String second){
+    public static User createUser(String uname, String pwd, String first, String second){
         if (allMyUsers.stream().noneMatch(e->e.getName().equals(uname))) {
-            MyUser newCustomer = new MyUser(uname, pwd, first, second);
+            User newCustomer = new User(uname, pwd, first, second);
             return newCustomer;
         }
         else return null;
     }
 
     public static boolean removeCustomer(int id){
-        if (id>0) return allMyUsers.remove(allMyUsers.indexOf(MyUser.getUserById(id))) != null;
+        if (id>0) return allMyUsers.remove(allMyUsers.indexOf(User.getUserById(id))) != null;
         return false;
    }
 
-    public static MyUser getUserById(int id) {
+    public static User getUserById(int id) {
         return allMyUsers.stream().filter(e->e.id==id).findFirst().orElse(null);
     }
 
@@ -97,7 +96,7 @@ return null;
 
 
 
-    public static MyUser getUserByName(String uname){
+    public static User getUserByName(String uname){
         return allMyUsers.stream()
                 .filter(e->e.username.equals(uname))
                 .findFirst()
@@ -109,7 +108,7 @@ return null;
     }
 
     public static String validateLogin(String uname, String pwd){
-        MyUser found = getUserByName(uname);
+        User found = getUserByName(uname);
         if(found!=null) return pwd.equals(found.plainpassword) ? found.getRole(): null;
         return null;
     }

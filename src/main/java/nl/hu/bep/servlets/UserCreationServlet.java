@@ -1,6 +1,5 @@
 package nl.hu.bep.servlets;
 
-import nl.hu.bep.security.AuthenticationResource;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -8,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
+
 
 @WebServlet(urlPatterns = "/user_creation")
 public class UserCreationServlet extends HttpServlet{
@@ -26,8 +25,6 @@ public class UserCreationServlet extends HttpServlet{
         out.println("<body>");
         out.println("   <h1>Account aanmaken</h1>");
 
-
-
         out.println("<h1>Customer creation</h1>");
         out.println("<form id=\"POSTCustomerForm1\">");
         out.println("    <label for=\"name\">Gebruikersnaam<input type=\"text\" id=\"name1\" name=\"name\"/></label>");
@@ -36,7 +33,6 @@ public class UserCreationServlet extends HttpServlet{
         out.println("    <label for=\"name\">Achternaam<input type=\"text\" id=\"achternaam\" name=\"achternaam\"/></label>");
         out.println("    <input type=\"button\" id=\"postJackson1\" value=\"JacksonPost!\"/>");
         out.println("</form>");
-
         out.println("<script type=\"text/javascript\">");
         out.println("    document.querySelector(\"#postJackson1\").addEventListener(\"click\", function () {");
         out.println("        var w = document.forms[\"POSTCustomerForm1\"][\"name1\"].value;");
@@ -49,7 +45,6 @@ public class UserCreationServlet extends HttpServlet{
         out.println("        }else{");
         out.println("            var formData = new FormData(document.querySelector(\"#POSTCustomerForm1\"));");
         out.println("            var encData = new URLSearchParams(formData.entries());");
-
         out.println("            fetch(\"restservices/users/allUsers\", {method: 'POST', body: encData})");
         out.println("                .then(response => response.json())");
         out.println("                .then(function (myJson) {");
@@ -58,9 +53,6 @@ public class UserCreationServlet extends HttpServlet{
         out.println("        }");
         out.println("    });");
         out.println("</script>");
-
-
-
         out.println("</body>");
         out.println("</html>");
     }

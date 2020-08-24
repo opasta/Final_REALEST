@@ -5,7 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
-import nl.hu.bep.model.MyUser;
+import nl.hu.bep.model.User;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -31,7 +31,7 @@ public class AuthenticationResource {
     }
 
     public static String getToken(@FormParam("username") String username, @FormParam("password") String password){
-        String role = MyUser.validateLogin(username, password);
+        String role = User.validateLogin(username, password);
         String token = createToken(username, role);
         //System.out.println(token);
         return token;
@@ -49,7 +49,7 @@ public class AuthenticationResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public static Response authenticateUserByPassword(@FormParam("username") String username, @FormParam("password") String password){
         try {
-                String role = MyUser.validateLogin(username, password);
+                String role = User.validateLogin(username, password);
 
                 String token = getToken(username, password);
 
