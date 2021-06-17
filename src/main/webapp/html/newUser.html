@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Creation</title>
+</head>
+<body>
+    <h1>Account aanmaken</h1>
+
+    <h1>Customer creation</h1>
+    <form id="newUser">
+        <label for="name">Gebruikersnaam
+            <input required type="text" id="name" name="name"/>
+        </label>
+        <label for="password">Wachtwoord
+            <input required type="password" id="password" name="password"/>
+        </label>
+        <label for="voornaam">Voornaam
+            <input required type="text" id="voornaam" name="voornaam"/>
+        </label>
+        <label for="achternaam">Achternaam
+            <input required type="text" id="achternaam" name="achternaam"/>
+        </label>
+        <input type="button" id="required" value="Verzend"/>
+    </form>
+    <script type="text/javascript">
+        document.querySelector("#required").addEventListener("click", function () {
+            var formData = new FormData(document.querySelector("#newUser"));
+            var encData = new URLSearchParams(formData.entries());
+
+            fetch("/rest/user", {method: 'POST', body: encData})
+                .then(response => response.json())
+                .catch(error => console.log(error));
+        });
+
+        </script>
+</body>
+</html>

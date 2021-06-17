@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+<h2>Dit is het dashboard</h2>
+
+<div id="dashboard">niet gemachtigd</div><br>
+<div id="creation" style="background-color: lightgray;"></div><br>
+<div id="user_links" style="background-color: green;"></div><br>
+<div id="adminLists" style="background-color: darkgoldenrod;"></div><br>
+<div id="deleteStuff" style="background-color: grey;"></div>
+
+<script type="text/javascript">
+    console.log("request send");
+    var fetchoptions = {
+        method : "GET",
+        headers : {
+            "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+        }
+    };
+    fetch("/rest/user/current", fetchoptions)
+        .then(function (response) {
+            if (response.ok) {
+                console.log("Print data");
+                return response.json();
+            }
+            else
+                throw "Wrong Credentials";
+
+        })
+        .then(myJSON => document.querySelector("#dashboard").innerHTML = "Welkom gebruiker: " + JSON.stringify(myJSON) + "<br><p>Je bent nu ingelogd. <a onclick=\"logOut();\">Klik hier</a> om weer uit te loggen.</p>")
+        .catch(error => console.log(error));
+
+    let token = sessionStorage.getItem('JWToken');
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    var role = JSON.parse(jsonPayload)[Object.keys(JSON.parse(jsonPayload))[2]];
+
+    if (role === "admin" || role === "user") {
+        document.querySelector("#user_links").innerHTML += "<a href='ownAquariums.html'>Eigen Aquariums</a><br>";
+        document.querySelector("#user_links").innerHTML += "<a href='ownBewoners.html'>Eigen Bewoners</a><br>";
+        document.querySelector("#user_links").innerHTML += "<a href='ownToebehoren.html'>Eigen Toebehoren</a><br>";
+        document.querySelector("#creation").innerHTML += "    <h2>Aquarium creation</h2>\n" +
+            "    <form id=\"aquariumCreate\">\n" +
+            "        <label for=\"nameAqua\">Naam\n" +
+            "            <input required type=\"text\" id=\"nameAqua\" name=\"name\"/>\n" +
+            "        </label>\n" +
+            "        <label for=\"length\">Lengte\n" +
+            "            <input required type=\"number\" id=\"length\" name=\"length\"/>\n" +
+            "        </label>\n" +
+            "        <label for=\"width\">Breedte\n" +
+            "            <input required type=\"number\" id=\"width\" name=\"width\"/>\n" +
+            "        </label>\n" +
+            "        <label for=\"height\">Hoogte\n" +
+            "            <input required type=\"number\" id=\"height\" name=\"height\"/>\n" +
+            "        </label>\n" +
+            "        <label for=\"bottom\">Bodemsoort\n" +
+            "            <input required type=\"text\" id=\"bottom\" name=\"bottom\"/>\n" +
+            "        </label>\n" +
+            "        <label for=\"water\">Watersoort\n" +
+            "            <input required type=\"text\" id=\"water\" name=\"water\"/>\n" +
+            "        </label>\n" +
+            "        <input type=\"button\" id=\"send_Aquarium\" value=\"Verzend!\"/>\n" +
+            "    </form>";
+        document.querySelector("#deleteStuff").innerHTML += "<div class=\"aquariumDelete\">\n" +
+            "        <h2>Aquarium Delete:</h2>\n" +
+            "        <form id=\"deleteAquarium\">\n" +
+            "            <label for=\"id\">Aquarium id:<input type=\"text\" id=\"aquaId\" name=\"id\"/></label>\n" +
+            "            <input type=\"button\" id=\"deleteAquaId\" onclick=\"deleteAqua()\" value=\"Delete\"/>\n" +
+            "        </form>\n" +
+            "    </div>";
+        document.querySelector("#creation").innerHTML += "<h2>Bewoner creation</h2>\n" +
+            "<form id=\"bewonerCreate\">\n" +
+            "    <label for=\"aquaIdB\">Aquarium ID<input required type=\"number\" id=\"aquaIdB\" name=\"aquaID\"/></label>\n" +
+            "    <label for=\"snameB\">Soortnaam<input required type=\"text\" id=\"snameB\" name=\"sname\"/></label>\n" +
+            "    <label for=\"colorB\">Kleur<input required type=\"text\" id=\"colorB\" name=\"color\"/></label>\n" +
+            "    <label for=\"amountB\">Hoeveelheid<input required type=\"number\" id=\"amountB\" name=\"amount\"/></label>\n" +
+            "    <input type=\"button\" id=\"send_bewoner\" onclick=\"sendBewoner()\" value=\"Verzend!\"/>\n" +
+            "</form>";
+        document.querySelector("#deleteStuff").innerHTML += "<div class=\"aquariumDelete\">\n" +
+            "        <h2>Bewoner Delete:</h2>\n" +
+            "        <form id=\"bewonerDelete\">\n" +
+            "            <label for=\"deleteid\">Aquarium id:<input type=\"text\" id=\"bewonerId\" name=\"id\"/></label>\n" +
+            "            <input type=\"button\" id=\"delete_bewoner\" onclick=\"deleteBewoner()\" value=\"Delete\"/>\n" +
+            "        </form>\n" +
+            "    </div>";
+        document.querySelector("#creation").innerHTML += "<h2>Toebehoren creation</h2>\n" +
+            "<form id=\"toebehorenCreate\">\n" +
+            "    <label for=\"aquaIdB\">Aquarium ID<input required type=\"number\" id=\"aquaIdT\" name=\"aquaID\"/></label>\n" +
+            "    <label for=\"model\">Model<input required type=\"text\" id=\"model\" name=\"model\"/></label>\n" +
+            "    <label for=\"serienummer\">Serienummer<input required type=\"text\" id=\"serienummer\" name=\"serienummer\"/></label>\n" +
+            "    <input type=\"button\" id=\"send_toebehoren\" onclick=\"sendToebehoren()\" value=\"Verzend!\"/>\n" +
+            "</form>";
+        document.querySelector("#deleteStuff").innerHTML += "<div class=\"aquariumDelete\">\n" +
+            "        <h2>Toebehoren Delete:</h2>\n" +
+            "        <form id=\"toebehorenDelete\">\n" +
+            "            <label for=\"deleteid\">Aquarium id:<input type=\"text\" id=\"toebehorenId\" name=\"id\"/></label>\n" +
+            "            <input type=\"button\" id=\"delete_toebehoren\" onclick=\"deleteToebehoren()\" value=\"Delete\"/>\n" +
+            "        </form>\n" +
+            "    </div>";
+    }
+
+    function deleteAqua() {
+        var aquaId = document.querySelector("#aquaId").value;
+        var fetchOptions = {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }
+        };
+        console.log(aquaId);
+        console.log(fetchOptions);
+        fetch("/rest/aquarium/"+ aquaId, fetchOptions)
+            .then(function (response) {
+                if (response.ok) {console.log("aquarium deleted")}
+                else if(response.status===404) {console.log("Aquarium not found")}
+                else if(response.status===483) {console.log("forbidden")}
+            }).catch(error => console.log(error));
+    }
+
+    document.querySelector("#send_Aquarium").addEventListener("click", function () {
+        var formData = new FormData(document.querySelector("#aquariumCreate"));
+        var encData = new URLSearchParams(formData.entries());
+        fetch("/rest/aquarium/new", {method: 'POST', body: encData, headers : {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }})
+            .then(response => response.json())
+            .then(function (myJson) {
+                console.log(myJson)
+            });
+    });
+
+    function sendBewoner() {
+        var formData = new FormData(document.querySelector("#bewonerCreate"));
+        var encData = new URLSearchParams(formData.entries());
+        fetch("/rest/bewoner/new", {method: 'POST', body: encData, headers : {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }})
+            .then(response => response.json())
+            .then(function (myJson2) {
+                console.log(myJson2)
+            });
+    }
+
+    function deleteBewoner() {
+        console.log("test");
+        var bewId = document.querySelector("#bewonerId").value;
+        var fetchOptions = {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }
+        };
+        fetch("/rest/bewoner/"+ bewId, fetchOptions)
+            .then(function (response) {
+                if (response.ok) {console.log("bewoner deleted")}
+                else if(response.status===404) {console.log("Bewoner not found")}
+                else if(response.status===483) {console.log("forbidden")}
+            }).catch(error => console.log(error));
+    }
+
+    function sendToebehoren() {
+        var formData = new FormData(document.querySelector("#toebehorenCreate"));
+        var encData = new URLSearchParams(formData.entries());
+        fetch("/rest/toebehoren/new", {method: 'POST', body: encData, headers : {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }})
+            .then(response => response.json())
+            .then(function (myJson2) {
+                console.log(myJson2)
+            });
+    }
+
+    function deleteToebehoren() {
+        console.log("test");
+        var bewId = document.querySelector("#toebehorenId").value;
+        var fetchOptions = {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }
+        };
+        fetch("/rest/toebehoren/"+ bewId, fetchOptions)
+            .then(function (response) {
+                if (response.ok) {console.log("toebehoren deleted")}
+                else if(response.status===404) {console.log("toebehoren not found")}
+                else if(response.status===483) {console.log("forbidden")}
+            }).catch(error => console.log(error));
+    }
+
+    if (role === "admin") {
+        document.querySelector("#adminLists").innerHTML += "<br>";
+        document.querySelector("#adminLists").innerHTML += "<button onclick=\"window.location.href='allUsers.html'\">Alle Gebruikers</button>";
+        document.querySelector("#adminLists").innerHTML += "<button onclick=\"window.location.href='allAquariums.html'\">Alle Aquariums</button>";
+        document.querySelector("#adminLists").innerHTML += "<button onclick=\"window.location.href='allBewoners.html'\">Alle Bewoners</button>";
+        document.querySelector("#adminLists").innerHTML += "<button onclick=\"window.location.href='allToebehoren.html'\">Alle Toebehoren</button>";
+        document.querySelector("#adminLists").innerHTML += "<p>&nbsp;</p>";
+        document.querySelector("#deleteStuff").innerHTML += "<div class=\"admin_delete\">\n" +
+            "        <h2>Customer Delete:</h2>\n" +
+            "        <form id=\"deleteCustomer\">\n" +
+            "            <label for=\"id\">Customer id:<input type=\"text\" id=\"id\" name=\"id\"/></label>\n" +
+            "            <input type=\"button\" id=\"deleteUserId\" value=\"Delete\"/>\n" +
+            "        </form>\n" +
+            "    </div>"
+    }
+
+    function logOut() {
+        sessionStorage.removeItem('JWToken');
+        window.location.href = "/index.html";
+    }
+
+    document.querySelector("#deleteUserId").addEventListener("click", function () {
+        var id = document.querySelector("#id").value;
+        var fetchOptions = {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+            }
+        };
+        console.log(id);
+        console.log(fetchOptions);
+        fetch("/rest/user/"+ id, fetchOptions)
+                .then(function (response) {
+                    if (response.ok) {console.log("customer deleted")}
+                    else if(response.status===404) {console.log("Customer not found")}
+                    else if(response.status===483) {console.log("forbidden")}
+          }).catch(error => console.log(error));
+    });
+</script>
+
+</body>
+</html>

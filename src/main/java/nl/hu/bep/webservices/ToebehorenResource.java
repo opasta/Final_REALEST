@@ -1,85 +1,86 @@
 package nl.hu.bep.webservices;
 
 import nl.hu.bep.model.Aquarium;
-
 import nl.hu.bep.model.Toebehoren;
-import nl.hu.bep.servlets.LoggedInServlet;
+import nl.hu.bep.model.User;
 
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.AbstractMap;
-import java.util.List;
+import java.util.Base64;
+
 
 
 @Path("/toebehoren")
 public class ToebehorenResource {
 
     @GET
-    @Produces("application/json")
-    public List<Toebehoren> getAllToebehoren() {
-        if (LoggedInServlet.Amin_or_not.equals("admin")){
-            return Toebehoren.getAllToebehoren();
-        }else{
-            return null;
-        }
+    @RolesAllowed("admin")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAll() {
+        System.out.println("Get all toebehoren");
+        return Response.ok(Toebehoren.getAll()).build();
     }
 
     @GET
-    @PermitAll
-    @Path("{userId}")
-    @Produces("application/json")
-    public List<Toebehoren> gettoebehoor(@PathParam("userId") int id) {
-        String idToString = "" + id;
+    @RolesAllowed({"user", "admin"})
+    @Path("currentUser")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOwn(@Context HttpHeaders headers) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
 
-        if (LoggedInServlet.usernumber.equals(idToString)) {
-            return Toebehoren.gettAllToebehorenEqualToAquarium(id);
-        }else{
-            return null;
-        }
+        String[] parts = payload.split("\"");
+        System.out.println(parts[3]);
+        User user = User.getUserByName(parts[3]);
+        return Response.ok(Toebehoren.getAllEqualToUser(user.getId())).build();
     }
 
     @POST
-    @Path("toebehoren_add")
-    @Produces("application/json")
-    public Response createUser(@FormParam("ownerID2ownerID2") int ownId, @FormParam("aquaID2") int aquaID, @FormParam("model") String md, @FormParam("snumber") String sn) {
-        String idToString = ownId + ", " + aquaID;
-        if(Aquarium.getAllAquariumsEqualToUser(ownId).toString().contains(idToString)){
-            Toebehoren newToebehoren = Toebehoren.createToebehoren(aquaID, md, sn);
+    @RolesAllowed({"user", "admin"})
+    @Path("new")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createToebehoren(@Context HttpHeaders headers, @FormParam("aquaID") int aquariumID, @FormParam("model") String model, @FormParam("serienummer") String serienummer) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
+
+        String[] parts = payload.split("\"");
+        if (Aquarium.getById(aquariumID).ownerId == User.getUserByName(parts[3]).getId()){
+            Toebehoren newToebehoren = Toebehoren.createToebehoren(aquariumID, model, serienummer);
             if (newToebehoren == null) {
                 System.out.println("Toebehoren bestond al");
                 return Response.status(Response.Status.CONFLICT).entity(new AbstractMap.SimpleEntry<>("result", "Toebehoren bestond al")).build();
             }
-        }else{
-            System.out.println("aquarium is not yours!");
-        }
-        return null;
+            System.out.println("Toebehoren Aangemaakt");
+            return Response.ok(newToebehoren).build();
+
+        }else
+            return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
     @DELETE
-    @Path("{customerid}")
-    @Produces("application/json")
-    public Response deleteAquariums(@PathParam("customerid") int id){
-        String userNO = LoggedInServlet.usernumber;
-        int idToString =Integer.parseInt(userNO);
-        String userAquarium = idToString + ", " + Toebehoren.allToebehoren.get((id - 1)).toString();
+    @RolesAllowed({"user", "admin"})
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteToebehoren(@Context HttpHeaders headers, @PathParam("id") int id) {
+        System.out.println("Delete toebehoren");
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
 
-        if (LoggedInServlet.Amin_or_not.equals("admin")){
-          Toebehoren.allToebehoren.remove(Toebehoren.getBToebehorenById(id));
-          Toebehoren.ownToebehoren.remove(Toebehoren.getBToebehorenById(id));
-        }else{
-            System.out.println("not the admin");
-            for (int i = 0; i <= Aquarium.getAllAquariums().size(); i++) {
-                if(Aquarium.getAllAquariums().get(i).toString().equals(userAquarium)){
-                    System.out.println("matchend, komt voor in de lijst");
-                    Toebehoren.allToebehoren.remove(Toebehoren.getBToebehorenById(id));
-                    Toebehoren.ownToebehoren.remove(Toebehoren.getBToebehorenById(id));
-                    break;
-                }else{
-                    System.out.println("NIET matchend, komt NIET voor in de lijst");
-                }
-            }
+        String[] parts = payload.split("\"");
+        System.out.println(parts[3]);
+        User user = User.getUserByName(parts[3]);
+        Toebehoren toebehoren = Toebehoren.getById(id);
+        Aquarium aquarium = Aquarium.getById(toebehoren.aquariumID);
+        if (aquarium.ownerId == user.getId() || user.getRole().equals("admin")) {
+            if (Toebehoren.remove(id))
+                return Response.ok().build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 }

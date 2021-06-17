@@ -8,9 +8,56 @@
     <h1>Aquarium Beheersysteem</h1>
     <h2>By: Michel Kastelein</h2>
 
-    <ul>
-        <li><a href="/login">Login!</a></li>
-    </ul>
+    <div id="loginDiv">
+        <form id="loginForm">
+            <input type="text" name="userName"/>
+            <input type="password" name="passWord"/>
+            <input type="button" value="login" id="login"/>
+        </form>
+
+        <a href="/html/newUser.html">Account aanmaken</a>
+    </div>
+    <script type="text/javascript">
+
+        function login(event) {
+            console.log("login clicked");
+            var formData = new FormData(document.querySelector("#loginForm"));
+            var encData = new URLSearchParams(formData.entries());
+
+            fetch("rest/auth", {method: 'POST', body: encData})
+                .then(function (response) {
+                    if (response.ok)
+                        return response.json();
+                    else
+                        throw "Wrong Credentials";
+
+                })
+                .then(myJSON => window.sessionStorage.setItem("JWToken", myJSON.JWT))
+                .then(handleResolvedB)
+                .catch(error => console.log(error));
+
+        }
+
+        document.querySelector('#login').addEventListener("click", login);
+
+        function handleResolvedB() {
+            window.location.pathname = '/html/dashboard.html'
+        }
+
+        if (sessionStorage.getItem("JWToken") === null) {
+            console.log("no key reprisent");
+        }else{
+            console.log("key exists");
+            document.querySelector("#loginDiv").innerHTML = '<p>Je bent nu ingelogd. <a onclick="logOut();">Klik hier</a> om weer uit te loggen.</p>';
+        }
+
+        function logOut() {
+            sessionStorage.removeItem('JWToken');
+            location.reload();
+        }
+
+
+    </script>
 
     <p>Dit is het Aquariumbeheersysteem, waar u zich kunt registreren, vervolgens aquariums aanmaken en daarna kunt u voor deze aquariums bewoners en toebehoren toevoegen.</p>
     <p>Als beheerder zijnde kunt u alle gebruikers, aquariums, bewoners en toebehoren zien of verwijderen.</p>

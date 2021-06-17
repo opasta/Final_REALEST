@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alle Gebruikers</title>
+</head>
+<body>
+<p>Dit is een lijst van alle gebruikers</p>
+
+<div id="dashboard">niet gemachtigd</div>
+
+<script type="text/javascript">
+    console.log("request send");
+    var fetchoptions = {
+        method : "GET",
+        headers : {
+            "Authorization": "Bearer " + window.sessionStorage.getItem("JWToken")
+        }
+    };
+    fetch("/rest/user", fetchoptions)
+        .then(function (response) {
+            if (response.ok) {
+                console.log("Print data");
+                return response.json();
+            }
+            else
+                throw "Wrong Credentials";
+
+        })
+        .then(myJSON => document.querySelector("#dashboard").innerHTML = JSON.stringify(myJSON))
+        .catch(error => console.log(error));
+
+        </script>
+
+</body>
+</html>

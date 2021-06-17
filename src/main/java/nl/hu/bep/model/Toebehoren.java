@@ -1,8 +1,13 @@
 package nl.hu.bep.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class Toebehoren {
     public static List<String> tempString = new ArrayList<>();
     public static List<Toebehoren> allToebehoren = new ArrayList<>();
@@ -13,66 +18,59 @@ public class Toebehoren {
     public String serienummer;
     private static int numCustomers = 0;
 
-    public Toebehoren(int aquaID, String md, String sn){
+    public Toebehoren(int aquariumID, String model, String serienummer){
         id = ++numCustomers;
-        aquariumID = aquaID;
-        model = md;
-        serienummer = sn;
+        this.aquariumID = aquariumID;
+        this.model = model;
+        this.serienummer = serienummer;
         allToebehoren.add(this);
     }
 
-    public static List<Toebehoren> getAllToebehoren() {
-        return allToebehoren;
-    }
-
-    public static Toebehoren createToebehoren(int aquaID, String md, String sn){
-        if (allToebehoren.stream().noneMatch(e->e.getSerienummer().equals(sn))) {
-            Toebehoren newToebehoren = new Toebehoren(aquaID, md, sn);
-            return newToebehoren;
+    public static Toebehoren createToebehoren(int aquariumID, String model, String serienummer){
+        if (allToebehoren.stream().noneMatch(e->e.serienummer.equals(serienummer))) {
+            return new Toebehoren(aquariumID, model, serienummer);
         }
         else return null;
     }
 
-    public static List<Toebehoren> gettAllToebehorenEqualToAquarium(int user) {
-        String intToString = "" + user;
-        tempString.clear();
-
-        for (int i = 0; (i ) < Aquarium.allAquariums.size(); i++) {
-
-            String string = Aquarium.allAquariums.get(i).toString();
-            String[] parts = string.split(", ");
-            Aquarium.listOwner.add(parts[0]);
-            if (parts[0].equals(intToString)){
-                tempString.add(parts[1]);
-            }
-        }
-
-        for (int i=0 ; i < allToebehoren.size(); i++) {
-            if(tempString.contains(allToebehoren.get(i).toString())){
-                if(ownToebehoren.contains(allToebehoren.get(i))){
-                    System.out.println("Already added");
-                }else{
-                    System.out.println("Adding to own");
-                    ownToebehoren.add(allToebehoren.get(i));
-                }
+    public static List<Toebehoren> getAllEqualToUser(int ownerId) {
+        ownToebehoren.clear();
+        for (Toebehoren toebehoren : allToebehoren) {
+            if (Aquarium.getById(toebehoren.aquariumID).ownerId == ownerId){
+                System.out.println("Toebehoren " + toebehoren + " is mine");
+                ownToebehoren.add(toebehoren);
+            }else{
+                System.out.println("I do not own" + toebehoren);
             }
         }
         return ownToebehoren;
     }
 
-    public static Toebehoren getBToebehorenById(int id) {
+    public static Toebehoren getById(int id) {
         return allToebehoren.stream().filter(e->e.id==id).findFirst().orElse(null);
+    }
+
+    public static List<Toebehoren> getAll() {
+        return allToebehoren;
     }
 
     public int getId(){
         return id;
     }
 
-    public String toString() {
-        return ""+ aquariumID;
+    public static boolean remove(int id){
+        if (id>0) return allToebehoren.remove(allToebehoren.indexOf(Toebehoren.getById(id))) != null;
+        return false;
     }
 
-    public String getSerienummer() {
-        return serienummer;
+
+    @Override
+    public String toString() {
+        return "Toebehoren{" +
+                "id=" + id +
+                ", aquariumID=" + aquariumID +
+                ", model='" + model + '\'' +
+                ", serienummer='" + serienummer + '\'' +
+                '}';
     }
 }

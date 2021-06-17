@@ -1,6 +1,6 @@
 package nl.hu.bep.security;
 
-
+import com.fasterxml.jackson.core.JacksonException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -14,53 +14,44 @@ import java.security.Key;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Calendar;
 
-@Path("/authentication")
+@Path("/auth")
 public class AuthenticationResource {
-    public static final Key key = MacProvider.generateKey();
+     public static final Key key = MacProvider.generateKey();
 
-    private static String createToken(String userName, String role) throws JwtException {
-        Calendar expiration = Calendar.getInstance();
-        expiration.add(Calendar.MINUTE, 30);
+     private String createToken(String username, String role) throws JacksonException{
+         Calendar expiration = Calendar.getInstance();
+         expiration.add(Calendar.MINUTE, 30);
 
-        return Jwts.builder()
-                .setSubject(userName)
-                .setExpiration(expiration.getTime())
-                .claim("role", role)
-                .signWith(SignatureAlgorithm.HS512, key)
-                .compact();
-    }
-
-    public static String getToken(@FormParam("username") String username, @FormParam("password") String password){
-        String role = User.validateLogin(username, password);
-        String token = createToken(username, role);
-        //System.out.println(token);
-        return token;
-    }
-
-
-    public int a = 10;
-    public static String b = "ThisisATest";
-    public final int c = 30;
-
-
+         return Jwts.builder()
+                 .setSubject(username)
+                 .setExpiration(expiration.getTime())
+                 .claim("role", role)
+                 .signWith(SignatureAlgorithm.HS512, key)
+                 .compact();
+     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public static Response authenticateUserByPassword(@FormParam("username") String username, @FormParam("password") String password){
-        try {
-                String role = User.validateLogin(username, password);
+    public Response authenticateUserByPassowrd(@FormParam("userName") String username, @FormParam("passWord") String password){
+         try{
+             String role = User.validateLogin(username, password);
+             System.out.println("role " + role);
+             if (role == null){
+                 System.out.println("Gegevens incorrect!!");
+                 return Response.status(Response.Status.UNAUTHORIZED).build();
+             }else{
+                 System.out.println("Correcte gegevens");
+                 String token = createToken(username, role);
+                 System.out.println("Token " + token);
 
-                String token = getToken(username, password);
+                 SimpleEntry<String, String> JWT = new SimpleEntry<>("JWT", token);
+                 return Response.ok(JWT).build();
+             }
 
 
-
-            SimpleEntry<String, String> JWT = new SimpleEntry<>("JWT", token);
-            return Response.ok(JWT).build();
-        }
-        catch (JwtException | IllegalArgumentException e){
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
+         } catch (JwtException | IllegalArgumentException | JacksonException e) {
+             return Response.status(Response.Status.UNAUTHORIZED).build();
+         }
     }
-
 }

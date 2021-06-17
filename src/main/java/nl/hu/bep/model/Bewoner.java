@@ -1,8 +1,13 @@
 package nl.hu.bep.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class Bewoner {
     public static List<Bewoner> allBewoners = new ArrayList<>();
     public static List<Bewoner> ownBewoners = new ArrayList<>();
@@ -15,60 +20,43 @@ public class Bewoner {
     public String groepsdier = "Nee";
     private static int numCustomers = 0;
 
-    public Bewoner(int aquaID, String sortnm, String color, int amount){
+    public Bewoner(int aquariumID, String soortnaam, String kleurnaam, int aantal){
         id = ++numCustomers;
-        aquariumID = aquaID;
-        soortnaam = sortnm;
-        kleurnaam = color;
-        aantal = amount;
-        if (amount > 1) {
+        this.aquariumID = aquariumID;
+        this.soortnaam = soortnaam;
+        this.kleurnaam = kleurnaam;
+        this.aantal = aantal;
+        if (aantal > 1) {
             groepsdier = "Ja";
         }
         allBewoners.add(this);
     }
 
-    public static Bewoner createBewoner(int aquaID, String sortnm, String color, int amount){
-        if (allBewoners.stream().noneMatch(e->e.getSoortnaam().equals(sortnm))) {
-            Bewoner newBewoner = new Bewoner(aquaID, sortnm, color, amount);
-            return newBewoner;
+    public static Bewoner createBewoner(int aquariumID, String soortnaam, String kleurnaam, int aantal){
+        if (allBewoners.stream().noneMatch(e->e.soortnaam.equals(soortnaam))) {
+            return new Bewoner(aquariumID, soortnaam, kleurnaam, aantal);
         }
         else return null;
     }
 
-    public static List<Bewoner> gettAllbewonersEqualToAquarium(int user) {
-        String intToString = "" + user;
-        tempString.clear();
-
-        for (int i = 0; (i ) < Aquarium.allAquariums.size(); i++) {
-
-            String string = Aquarium.allAquariums.get(i).toString();
-            String[] parts = string.split(", ");
-            Aquarium.listOwner.add(parts[0]);
-
-            if (parts[0].equals(intToString)){
-                tempString.add(parts[1]);
-            }
-        }
-
-        for (int i=0 ; i < allBewoners.size(); i++) {
-            if(tempString.contains(allBewoners.get(i).toString())){
-                if(ownBewoners.contains(allBewoners.get(i))){
-                    System.out.println("Already added");
-
-                }else{
-                    System.out.println("Adding to own");
-                    ownBewoners.add(allBewoners.get(i));
-                }
+    public static List<Bewoner> getAllEqualToUser(int ownerId) {
+        ownBewoners.clear();
+        for (Bewoner bewoner : allBewoners) {
+            if (Aquarium.getById(bewoner.aquariumID).ownerId == ownerId){
+                System.out.println("Bewoner " + bewoner + " is mine");
+                ownBewoners.add(bewoner);
+            }else{
+                System.out.println("I do not own" + bewoner);
             }
         }
         return ownBewoners;
     }
 
-    public static Bewoner getBewonerById(int id) {
+    public static Bewoner getById(int id) {
         return allBewoners.stream().filter(e->e.id==id).findFirst().orElse(null);
     }
 
-    public static List<Bewoner> getAllBewoners() {
+    public static List<Bewoner> getAll() {
         return allBewoners;
     }
 
@@ -76,12 +64,21 @@ public class Bewoner {
         return id;
     }
 
-    public String toString() {
-        return ""+ aquariumID;
+    public static boolean remove(int id){
+        if (id>0) return allBewoners.remove(allBewoners.indexOf(Bewoner.getById(id))) != null;
+        return false;
     }
 
-    public String getSoortnaam() {
-        return soortnaam;
+    @Override
+    public String toString() {
+        return "Bewoner{" +
+                "id=" + id +
+                ", aquariumID=" + aquariumID +
+                ", soortnaam='" + soortnaam + '\'' +
+                ", kleurnaam='" + kleurnaam + '\'' +
+                ", aantal=" + aantal +
+                ", groepsdier='" + groepsdier + '\'' +
+                '}';
     }
 }
 

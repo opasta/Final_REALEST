@@ -2,90 +2,82 @@ package nl.hu.bep.webservices;
 
 import nl.hu.bep.model.Aquarium;
 import nl.hu.bep.model.Bewoner;
-import nl.hu.bep.servlets.LoggedInServlet;
-
-import javax.annotation.security.PermitAll;
+import nl.hu.bep.model.User;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.AbstractMap;
-import java.util.List;
+import java.util.Base64;
 
-
-@Path("/bewoners")
+@Path("/bewoner")
 public class BewonerResource {
 
     @GET
-    @Produces("application/json")
-    public List<Bewoner> getAllBewoners() {
-        if (LoggedInServlet.Amin_or_not.equals("admin")){
-            return Bewoner.getAllBewoners();
-        }else{
-            return null;
-        }
+    @RolesAllowed("admin")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAll() {
+        System.out.println("Get all bewoners");
+        return Response.ok(Bewoner.getAll()).build();
     }
 
     @GET
-    @PermitAll
-    @Path("{userId}")
-    @Produces("application/json")
-    public List<Bewoner> getbewoner(@PathParam("userId") int id) {
-        String idToString = "" + id;
+    @RolesAllowed({"user", "admin"})
+    @Path("currentUser")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOwn(@Context HttpHeaders headers) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
 
-        if (LoggedInServlet.usernumber.equals(idToString)) {
-            return Bewoner.gettAllbewonersEqualToAquarium(id);
-        }else{
-            return null;
-        }
+        String[] parts = payload.split("\"");
+        System.out.println(parts[3]);
+        User user = User.getUserByName(parts[3]);
+        return Response.ok(Bewoner.getAllEqualToUser(user.getId())).build();
     }
 
-
-
     @POST
-    @Path("bewoner_add")
-    @Produces("application/json")
-    public Response createUser(@FormParam("ownerID") int ownId, @FormParam("aquaID") int aquaID, @FormParam("sname") String sname, @FormParam("color") String color,  @FormParam("amount") int amount) {
-       String idToString = ownId + ", " + aquaID;
+    @RolesAllowed({"user", "admin"})
+    @Path("new")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createBewoner(@Context HttpHeaders headers, @FormParam("aquaID") int aquariumID, @FormParam("sname") String soortnaam, @FormParam("color") String kleurnaam,  @FormParam("amount") int aantal) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
 
-        if(Aquarium.getAllAquariumsEqualToUser(ownId).toString().contains(idToString)){
-            Bewoner newBewoner = Bewoner.createBewoner(aquaID, sname, color, amount);
-            if (newBewoner == null) {
+        String[] parts = payload.split("\"");
+        if (Aquarium.getById(aquariumID).ownerId == User.getUserByName(parts[3]).getId()){
+            Bewoner newbewoner = Bewoner.createBewoner(aquariumID, soortnaam, kleurnaam, aantal);
+            if (newbewoner == null) {
                 System.out.println("Bewoner bestond al");
                 return Response.status(Response.Status.CONFLICT).entity(new AbstractMap.SimpleEntry<>("result", "Bewoner bestond al")).build();
             }
-        }else{
-            System.out.println("aquarium is not yours!");
-        }
-        return null;
+            System.out.println("Bewoner Aangemaakt");
+            return Response.ok(newbewoner).build();
+
+        }else
+            return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
     @DELETE
-    @Path("{customerid}")
-    @Produces("application/json")
-    public Response deleteAquariums(@PathParam("customerid") int id){
-        String userno = LoggedInServlet.usernumber;
-        int idToString =Integer.parseInt(userno);
-        System.out.println("owner id: " + userno);
+    @RolesAllowed({"user", "admin"})
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteBewoner(@Context HttpHeaders headers, @PathParam("id") int id) {
+        System.out.println("Delete bewoner");
+        Base64.Decoder decoder = Base64.getDecoder();
+        String payload = new String(decoder.decode(headers.getHeaderString("authorization").substring(7).split("\\.")[1]));
 
-        String owner_aquarium = idToString + ", " + Bewoner.allBewoners.get((id - 1)).toString();
-
-        if (LoggedInServlet.Amin_or_not.equals("admin")){
-            System.out.println("admin can delete it all!!");
-            Bewoner.allBewoners.remove(Bewoner.getBewonerById(id));
-            Bewoner.ownBewoners.remove(Bewoner.getBewonerById(id));
-
-        }else{
-            System.out.println("not the admin");
-
-            for (int i = 0; i <= Aquarium.getAllAquariums().size(); i++) {
-                if(Aquarium.getAllAquariums().get(i).toString().equals(owner_aquarium)){
-                    Bewoner.allBewoners.remove(Bewoner.getBewonerById(id));
-                    Bewoner.ownBewoners.remove(Bewoner.getBewonerById(id));
-                    break;
-                }else{
-                    System.out.println("NIET matchend, komt NIET voor in de lijst");
-                }
-            }
+        String[] parts = payload.split("\"");
+        System.out.println(parts[3]);
+        User user = User.getUserByName(parts[3]);
+        Bewoner bewoner = Bewoner.getById(id);
+        Aquarium aquarium = Aquarium.getById(bewoner.aquariumID);
+        if (aquarium.ownerId == user.getId() || user.getRole().equals("admin")) {
+            if (Bewoner.remove(id))
+                return Response.ok().build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 }
